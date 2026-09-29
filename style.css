@@ -1,0 +1,165 @@
+/* ==========================================================================
+   أربع واجهات — showcase hub
+   Follows DESIGN.md (The Stencilled Crate): one ground, one accent,
+   hairline separation, flat, near-zero radius, Reem Kufi + Almarai.
+   ========================================================================== */
+
+:root {
+  --ground: #18110D;   --ground: oklch(0.185 0.014 48);
+  --s1:     #251C18;   --s1:     oklch(0.235 0.016 48);
+  --ink:    #F5F1EC;   --ink:    oklch(0.960 0.008 75);
+  --soft:   #CFCAC2;   --soft:   oklch(0.840 0.012 75);
+  --muted:  #A69D93;   --muted:  oklch(0.700 0.018 70);
+  --accent: #E36935;   --accent: oklch(0.660 0.165 42);
+  --line:        rgba(245, 241, 236, 0.13);
+  --line-strong: rgba(245, 241, 236, 0.28);
+
+  --font-display: "Reem Kufi", "Almarai", system-ui, "Segoe UI", Tahoma, sans-serif;
+  --font-body:    "Almarai", system-ui, "Segoe UI", Tahoma, "Arial", sans-serif;
+  --mono: ui-monospace, "DejaVu Sans Mono", "Courier New", monospace;
+
+  --pad:  clamp(1.15rem, 4vw, 2.5rem);
+  --sec: clamp(3rem, 7vw, 5.5rem);
+  --z-sticky: 20;
+  --z-skip: 30;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: smooth; }
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--soft);
+  font-family: var(--font-body);
+  font-size: 1.0625rem;
+  line-height: 1.8;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, h3 {
+  font-family: var(--font-display); font-weight: 600; line-height: 1.4;
+  margin: 0; letter-spacing: 0; color: var(--ink); text-wrap: balance;
+}
+h1 { font-size: clamp(1.9rem, 1.2rem + 3vw, 3.25rem); line-height: 1.35; }
+h2 { font-size: clamp(1.4rem, 1.1rem + 1.4vw, 2.1rem); }
+
+p { margin: 0; }
+ul, ol, dl, dd { margin: 0; padding: 0; }
+li { list-style: none; }
+img { display: block; max-inline-size: 100%; block-size: auto; }
+a { color: var(--accent); text-decoration: none; }
+
+:focus-visible { outline: 3px solid var(--accent); outline-offset: 3px; border-radius: 2px; }
+
+.sr-only {
+  position: absolute; inline-size: 1px; block-size: 1px; margin: -1px;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+
+.skip {
+  position: absolute; inset-block-start: -100%; inset-inline-start: 1rem; z-index: var(--z-skip);
+  display: inline-flex; align-items: center; min-block-size: 44px; padding-inline: 1.1rem;
+  background: var(--accent); color: var(--ground); font-weight: 700; border-radius: 0 0 3px 3px;
+}
+.skip:focus-visible { inset-block-start: 0; }
+
+.wrap { inline-size: 100%; max-inline-size: 72rem; margin-inline: auto; padding-inline: var(--pad); }
+.section { padding-block: var(--sec); }
+.section-rule { border-block-start: 1px solid var(--line); }
+.section-head { max-inline-size: 46ch; margin-block-end: clamp(1.75rem, 4vw, 2.75rem); }
+.section-sub { margin-block-start: 0.85rem; color: var(--muted); font-size: 0.9375rem; }
+
+/* --- header --------------------------------------------------------------- */
+.site-header {
+  position: sticky; inset-block-start: 0; z-index: var(--z-sticky);
+  background: var(--ground); border-block-end: 1px solid var(--line);
+}
+.bar {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between;
+  gap: 0.35rem 1rem; min-block-size: 4rem; padding-block: 0.55rem;
+}
+.brand { display: inline-flex; align-items: center; gap: 0.6rem; min-block-size: 44px; color: var(--ink); }
+.brand-mark { inline-size: 1.55rem; block-size: 1.55rem; color: var(--accent); flex: none; }
+.brand-name { font-family: var(--font-display); font-size: 1.05rem; font-weight: 600; }
+.bar-note { font-size: 0.8125rem; color: var(--muted); }
+
+/* --- hero ----------------------------------------------------------------- */
+.hero { padding-block: clamp(2.5rem, 6vw, 4.5rem) 0; }
+.lede { margin-block-start: 1.15rem; max-inline-size: 46ch; font-size: 1.0625rem; text-wrap: pretty; }
+.lede-en { margin-block-start: 0.9rem; max-inline-size: 52ch; font-size: 0.9375rem; color: var(--muted); text-wrap: pretty; }
+
+/* --- theme entries --------------------------------------------------------
+   An image gallery is the right affordance here: the whole point is to show
+   four different visual systems, so a uniform grid is honest. Each entry
+   carries its own palette and lane, so nothing reads as a repeated card.
+   ------------------------------------------------------------------------- */
+.themes { display: grid; gap: 1.5rem; }
+
+.entry-link {
+  display: grid; gap: 1.1rem;
+  background: var(--s1);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  overflow: hidden;
+  block-size: 100%;
+  color: inherit;
+  transition: border-color 0.16s cubic-bezier(0.22, 1, 0.36, 1),
+              background-color 0.16s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.entry-link:hover { border-color: var(--line-strong); background: #2C211C; }
+.entry-link:hover .entry-shot img { opacity: 1; }
+.entry-link:hover .entry-go { color: var(--ink); }
+
+.entry-shot { display: block; overflow: hidden; background: var(--ground); border-block-end: 1px solid var(--line); }
+.entry-shot img {
+  inline-size: 100%; aspect-ratio: 4 / 3; object-fit: cover; object-position: top center;
+  opacity: 0.88;
+  transition: opacity 0.2s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.entry-body { display: grid; gap: 0.4rem; padding: 1.15rem 1.15rem 1.35rem; }
+.entry-kicker {
+  font-family: var(--mono); font-size: 0.8125rem; letter-spacing: 0.08em;
+  color: var(--accent);
+}
+.entry-name { font-family: var(--font-display); font-size: 1.3125rem; font-weight: 600; color: var(--ink); line-height: 1.45; }
+.entry-en { font-size: 0.875rem; color: var(--muted); direction: ltr; text-align: start; }
+.entry-note { margin-block-start: 0.35rem; font-size: 0.9375rem; color: var(--soft); max-inline-size: 42ch; text-wrap: pretty; }
+
+.entry-swatches { display: flex; gap: 0.3rem; margin-block-start: 0.85rem; }
+.entry-swatches i {
+  inline-size: 1.5rem; block-size: 1.5rem; border-radius: 3px;
+  background: var(--c); border: 1px solid var(--line-strong);
+}
+
+.entry-go {
+  display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap;
+  margin-block-start: 0.7rem; font-size: 0.875rem; font-weight: 700; color: var(--accent);
+}
+.mono { font-family: var(--mono); font-size: 0.8125rem; }
+
+@media (min-width: 44rem) { .themes { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+
+/* --- checks list ---------------------------------------------------------- */
+.checks { display: grid; gap: 0; }
+.checks > div {
+  display: grid; gap: 0.2rem 1.5rem;
+  padding-block: 1.05rem;
+  border-block-start: 1px solid var(--line);
+}
+.checks > div:last-child { border-block-end: 1px solid var(--line); }
+.checks dt { color: var(--ink); font-weight: 700; }
+.checks dd { color: var(--muted); font-size: 0.9375rem; text-wrap: pretty; }
+@media (min-width: 40rem) { .checks > div { grid-template-columns: 11rem 1fr; align-items: baseline; } }
+
+/* --- footer --------------------------------------------------------------- */
+.foot { padding-block: 1.75rem 2.25rem; }
+.foot-brand { font-family: var(--font-display); color: var(--ink); font-size: 1rem; }
+.foot-fine { margin-block-start: 0.3rem; font-size: 0.8125rem; color: var(--muted); max-inline-size: 62ch; }
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+  *, *::before, *::after { transition: none !important; }
+}

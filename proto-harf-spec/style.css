@@ -1,0 +1,540 @@
+/* ══════════════════════════════════════════════════════════════════════
+   ورشة حِرَف — theme "The Spec Sheet"
+   A drafting-document landing page: carbon-copy ground, plotted grid,
+   dimension lines with 45° end-ticks, numbered detail frames.
+   All spacing/borders use logical properties so dir="rtl" mirrors cleanly.
+   ══════════════════════════════════════════════════════════════════════ */
+
+/* ── 1. TOKENS ───────────────────────────────────────────────────────────
+   Verified with /tmp/opencode/contrast.py — every text/background pair
+   that ships, including text sitting over the drafting grid lines, is
+   >= 4.5:1. Numbers are in the report file. */
+:root {
+  /* surfaces */
+  --ground:    oklch(0.205 0.006 255);   /* #15171A — sheet */
+  --panel:     oklch(0.245 0.007 255);   /* #1E2124 — drawing frame */
+  --panel-2:   oklch(0.30  0.008 255);   /* #2B2E32 — raised panel */
+  --grid-min:  oklch(0.252 0.008 255);   /* #1C1E21 — 10px graph paper */
+  --grid-max:  oklch(0.300 0.009 255);   /* #25282C — 60px major grid */
+
+  /* ink */
+  --ink:       oklch(0.94  0.004 255);   /* #E9EBEE — headings, 15.0:1 */
+  --ink-2:     oklch(0.80  0.006 255);   /* #BBBEC2 — body,     9.6:1 */
+  --mono:      oklch(0.74  0.010 255);   /* #A7ABB1 — metadata,  7.8:1 */
+  --mono-dim:  oklch(0.67  0.010 255);   /* #91969B — annot.,   6.0:1 */
+  --accent:    oklch(0.705 0.185 30);    /* #FE6A56 — the red annotation pen */
+  --on-accent: oklch(0.16  0.02  30);    /* #150A08 — 6.9:1 on accent */
+
+  /* structure */
+  --rule:      oklch(0.58  0.010 255);   /* #6B7075 — frame + dim lines, >=3:1 vs every panel */
+  --rule-soft: oklch(0.40  0.009 255);   /* #42464B — hairline row rules */
+
+  /* type */
+  --sans: "Tajawal", "Noto Sans Arabic", "Segoe UI", system-ui, sans-serif;
+  --mono-stack: "IBM Plex Mono", ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
+
+  --bar-h: 4.25rem;
+}
+
+/* ── 2. BASE ──────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  margin: 0;
+  background-color: var(--ground);
+  /* drafting paper: 10px minor grid, 60px major grid, both fixed to the
+     viewport so the grid does not swim while the sheet scrolls */
+  background-image:
+    repeating-linear-gradient(90deg,  var(--grid-min) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(180deg, var(--grid-min) 0 1px, transparent 1px 10px),
+    repeating-linear-gradient(90deg,  var(--grid-max) 0 1px, transparent 1px 60px),
+    repeating-linear-gradient(180deg, var(--grid-max) 0 1px, transparent 1px 60px);
+  background-attachment: fixed;
+  color: var(--ink-2);
+  font-family: var(--sans);
+  font-size: 1rem;
+  line-height: 1.75;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* The monospace is scoped to Latin/numeric technical metadata only.
+   IBM Plex Mono has no Arabic subset, so it must never carry a sentence.
+   Every Arabic string on the page uses --sans.
+   `direction:ltr; unicode-bidi:isolate` is deliberate: these boxes hold Latin
+   and numerals only, and without isolation the RTL paragraph reorders them
+   ("600 mm BASE" would render as "BASE mm 600"). */
+.mono, .ref, .dim-val, .index-code, .fbar-code, .item-m, .sched-row .mono,
+.hours bdi, .hours-off, .plate-ref, .bar-tel, .bar-sheet, .foot-meta, .legend bdi,
+.proc-code, .btn-ghost, .sched-head, .key-n, .disc-h bdi, .index-cap, .legend-cap,
+.items-foot .mono {
+  font-family: var(--mono-stack);
+  font-feature-settings: "zero" 1;
+  direction: ltr;
+  unicode-bidi: isolate;
+}
+
+h1, h2, h3, h4 { color: var(--ink); line-height: 1.35; margin: 0; font-weight: 700; }
+h1 { font-size: clamp(1.5rem, 1.05rem + 2.1vw, 2.3rem); }
+h2 { font-size: clamp(1.2rem, 1rem + 1vw, 1.6rem); }
+h3 { font-size: 1.0625rem; }
+h4 { font-size: 1rem; }
+p  { margin: 0; }
+ul, ol { margin: 0; padding: 0; list-style: none; }
+
+a { color: var(--ink); text-decoration-color: var(--accent); text-underline-offset: 0.25em; }
+a:hover { text-decoration-color: currentColor; }
+
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px; }
+
+.sr-only {
+  position: absolute; inline-size: 1px; block-size: 1px;
+  margin: -1px; padding: 0; border: 0;
+  overflow: hidden; clip-path: inset(50%); white-space: nowrap;
+}
+.skip {
+  position: absolute; inset-block-start: -100%; inset-inline-start: 1rem;
+  z-index: 60; background: var(--accent); color: var(--on-accent);
+  padding: 0.75rem 1rem; font-weight: 700;
+}
+.skip:focus { inset-block-start: 1rem; }
+
+/* ── 3. SHEET HEADER ──────────────────────────────────────────────────── */
+.bar {
+  position: sticky; inset-block-start: 0; z-index: 30;
+  background: var(--panel);
+  border-block-end: 1px solid var(--rule);
+}
+.bar-in {
+  display: flex; align-items: center; gap: 0.75rem 1rem;
+  min-block-size: var(--bar-h);
+  padding-inline: clamp(0.9rem, 3vw, 1.75rem);
+  max-inline-size: 96rem; margin-inline: auto;
+}
+.brand {
+  display: flex; align-items: center; gap: 0.6rem; text-decoration: none;
+  min-block-size: 44px;   /* tap target — the link is only ~30px tall without it */
+  padding-inline: 0.25rem;
+}
+.brand-mark { inline-size: 1.75rem; block-size: 1.75rem; color: var(--accent); flex: none; }
+.brand-name { color: var(--ink); font-weight: 700; font-size: 1.0625rem; white-space: nowrap; }
+
+.bar-sheet {
+  display: none; flex: 1;
+  margin: 0; font-size: 0.7rem; letter-spacing: 0.12em;
+  color: var(--mono-dim); text-transform: uppercase;
+}
+.bar-sheet span { color: var(--mono-dim); }
+
+.bar-end { margin-inline-start: auto; display: flex; align-items: center; gap: 0.5rem; }
+.bar-tel {
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  min-block-size: 2.75rem; padding-inline: 0.85rem;
+  border: 1px solid var(--rule); color: var(--mono);
+  text-decoration: none; font-size: 0.8rem; letter-spacing: 0.06em;
+}
+.bar-tel:hover { border-color: var(--accent); color: var(--ink); }
+.bar-tel-lbl { display: none; }
+
+.nav-toggle {
+  display: grid; place-items: center;
+  inline-size: 2.75rem; block-size: 2.75rem;
+  background: none; border: 1px solid var(--rule); color: var(--ink);
+  cursor: pointer; padding: 0;
+}
+.nav-toggle-box { display: grid; place-items: center; inline-size: 1.25rem; block-size: 1.25rem; }
+
+/* ── 4. SHEET BODY: index rail + drawing area ─────────────────────────── */
+.sheet {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  gap: clamp(1rem, 2.5vw, 2rem);
+  max-inline-size: 96rem; margin-inline: auto;
+  padding-inline: clamp(0.9rem, 3vw, 1.75rem);
+}
+
+/* the persistent index rail */
+.rail {
+  display: none;
+  position: sticky; inset-block-start: calc(var(--bar-h) + 1.25rem);
+  align-self: start;
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  padding: 1rem;
+}
+.rail.is-open { display: block; }
+
+.index-cap, .legend-cap {
+  margin: 0 0 0.75rem; font-size: 0.65rem; letter-spacing: 0.16em;
+  color: var(--mono-dim); text-transform: uppercase;
+}
+.index-list { border-block-start: 1px solid var(--rule-soft); }
+.index-list a {
+  display: flex; align-items: baseline; gap: 0.7rem;
+  min-block-size: 2.75rem; padding-block: 0.55rem;
+  border-block-end: 1px solid var(--rule-soft);
+  text-decoration: none; color: var(--ink-2);
+}
+.index-list a:hover { color: var(--ink); }
+.index-code {
+  flex: none; min-inline-size: 2.9rem; font-size: 0.72rem;
+  letter-spacing: 0.06em; color: var(--accent);
+}
+.index-name { font-size: 0.9375rem; }
+
+.rail-legend { margin-block-start: 1.25rem; padding-block-start: 1.25rem; border-block-start: 1px solid var(--rule-soft); }
+.legend { display: grid; gap: 0.45rem; }
+.legend li { display: flex; align-items: center; gap: 0.6rem; font-size: 0.875rem; }
+.legend bdi {
+  flex: none; min-inline-size: 1.75rem; text-align: center;
+  border: 1px solid var(--rule); color: var(--mono);
+  font-size: 0.72rem; padding-block: 0.1rem;
+}
+.rail-note {
+  margin-block-start: 1.25rem; padding-block-start: 1.25rem;
+  border-block-start: 1px solid var(--rule-soft);
+  font-size: 0.8125rem; line-height: 1.7; color: var(--mono-dim);
+}
+
+/* ── 5. DRAWING FRAMES ────────────────────────────────────────────────── */
+main { min-inline-size: 0; }
+.sheet-area { padding-block: clamp(1rem, 2.5vw, 1.75rem); min-inline-size: 0; }
+
+.frame {
+  background: var(--panel);
+  border: 1px solid var(--rule);
+  min-inline-size: 0;
+}
+
+/* frame title bar — the sheet's own device, not a marketing kicker:
+   it replaces the section heading rather than sitting above one. */
+.fbar {
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 0.75rem 1rem; flex-wrap: wrap;
+  padding: 0.75rem clamp(0.85rem, 2vw, 1.25rem);
+  border-block-end: 1px solid var(--rule);
+  background: var(--panel-2);
+}
+.fbar-h-sm { font-size: 1.0625rem; }
+.fbar-code {
+  flex: none; font-size: 0.68rem; letter-spacing: 0.14em;
+  color: var(--mono-dim); text-transform: uppercase;
+}
+
+/* ── 6. DIMENSION LINE (reusable technical device) ────────────────────── */
+.dim {
+  position: relative;
+  block-size: 2.25rem;
+  margin-block: 0.85rem;
+  --dim-bg: var(--ground);
+}
+.dim--panel { --dim-bg: var(--panel); }
+/* the ruled line */
+.dim::before {
+  content: ""; position: absolute; inset-inline: 0;
+  inset-block-start: calc(50% - 0.5px); block-size: 1px;
+  background: var(--rule);
+}
+/* 45° end tick, inline-start */
+.dim::after {
+  content: ""; position: absolute; inset-inline-start: 0;
+  inset-block-start: calc(50% - 7px); inline-size: 1px; block-size: 14px;
+  background: var(--rule); transform: rotate(45deg);
+}
+/* 45° end tick, inline-end */
+.dim-tick-end {
+  position: absolute; inset-inline-end: 0;
+  inset-block-start: calc(50% - 7px); inline-size: 1px; block-size: 14px;
+  background: var(--rule); transform: rotate(45deg);
+}
+/* measurement, centred on the line — inset-inline:0 + margin-inline:auto
+   centres correctly in both RTL and LTR without a transform */
+.dim-val {
+  position: absolute; inset-inline: 0; inset-block-start: 50%;
+  transform: translateY(-50%);
+  margin-inline: auto; inline-size: max-content; max-inline-size: 100%;
+  background: var(--dim-bg); padding-inline: 0.6rem;
+  font-size: 0.68rem; letter-spacing: 0.12em; color: var(--mono-dim);
+  white-space: nowrap;
+}
+
+/* ── 7. A-00 HERO ─────────────────────────────────────────────────────── */
+.hero { display: grid; gap: clamp(1rem, 2.5vw, 1.75rem); }
+.hero-body { padding: clamp(1rem, 2.5vw, 1.75rem); }
+.lede { font-size: clamp(1rem, 0.96rem + 0.25vw, 1.125rem); max-inline-size: 46ch; color: var(--ink-2); }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 0.75rem; margin-block-start: 1.5rem; }
+.hero-fine { margin-block-start: 1.25rem; font-size: 0.8125rem; color: var(--mono-dim); }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.55rem;
+  min-block-size: 3rem; padding-inline: 1.25rem;
+  border: 1px solid transparent; text-decoration: none;
+  font-weight: 700; font-size: 0.9375rem; text-align: center;
+}
+.btn svg { inline-size: 1.25rem; block-size: 1.25rem; flex: none; }
+.btn-accent { background: var(--accent); color: var(--on-accent); }
+.btn-accent:hover { filter: brightness(1.08); }
+.btn-ink { background: var(--ink); color: var(--on-accent); }
+.btn-ink:hover { background: #fff; }
+.btn-ghost { border-color: var(--rule); color: var(--mono); letter-spacing: 0.04em; font-weight: 500; }
+.btn-ghost:hover { border-color: var(--accent); color: var(--ink); }
+
+/* drawing + callout pair */
+.hero-pair { display: grid; gap: clamp(1rem, 2.5vw, 1.75rem); grid-template-columns: minmax(0, 1fr); }
+.drawing { margin: 0; }
+.drawing-box { padding: clamp(0.75rem, 2vw, 1.25rem); }
+.plot { display: block; inline-size: 100%; block-size: auto; color: var(--ink-2); }
+
+.p-crop   { stroke: var(--rule); fill: none; stroke-width: 1; }
+.p-centre { stroke: var(--mono-dim); fill: none; stroke-width: 1; stroke-dasharray: 16 5 3 5; opacity: 0.65; }
+.p-line   { stroke: var(--ink-2); fill: none; stroke-width: 1.6; }
+.p-thin   { stroke: var(--ink-2); fill: none; stroke-width: 1; }
+.p-fill   { fill: var(--ink-2); stroke: none; }
+.p-dim    { stroke: var(--mono-dim); fill: none; stroke-width: 1; }
+.p-tick   { stroke: var(--mono-dim); stroke-width: 1.4; }
+.p-val    { fill: var(--mono-dim); font-family: var(--mono-stack); font-size: 13px; letter-spacing: 0.1em; }
+.p-lead   { stroke: var(--accent); fill: none; stroke-width: 1; }
+.p-call circle { fill: none; stroke: var(--accent); stroke-width: 1.2; }
+.p-call text   { fill: var(--accent); font-family: var(--mono-stack); font-size: 13px; font-weight: 600; }
+
+.drawing > .dim { margin: 0 clamp(0.75rem, 2vw, 1.25rem) clamp(0.75rem, 2vw, 1.25rem); }
+
+/* callout key — the note block is pinned to the bottom of the frame,
+   the way a drawing carries its notes at the sheet edge */
+.key { display: flex; flex-direction: column; }
+.key-list { padding: 0 clamp(0.85rem, 2vw, 1.25rem); }
+.key-list li {
+  display: grid; grid-template-columns: 2rem minmax(0, 1fr);
+  gap: 0 0.85rem; padding-block: 1rem;
+  border-block-end: 1px solid var(--rule-soft);
+}
+.key-list li:last-child { border-block-end: 0; }
+.key-n {
+  display: grid; place-items: center;
+  inline-size: 2rem; block-size: 2rem; margin-block-start: 0.1rem;
+  border: 1px solid var(--accent); color: var(--accent);
+  font-size: 0.8rem; font-weight: 600;
+}
+.key-list p { font-size: 0.9375rem; margin-block-start: 0.2rem; }
+.key-foot {
+  margin-block-start: auto;
+  padding-block-start: 1rem;
+  padding-inline: clamp(0.85rem, 2vw, 1.25rem);
+  padding-block-end: clamp(0.85rem, 2vw, 1.25rem);
+  font-size: 0.8125rem; color: var(--mono-dim);
+}
+
+/* ── 8. A-01 ITEM LIST ────────────────────────────────────────────────── */
+/* detail blocks size to their own content — a drawing sheet's frames are not
+   forced to equal height, and stretching one would leave a dead void */
+.items-grid { display: grid; grid-template-columns: minmax(0, 1fr); align-items: start; }
+.disc { padding: clamp(0.85rem, 2vw, 1.25rem); border-inline-end: 1px solid var(--rule-soft); }
+.disc:last-child { border-inline-end: 0; }
+.disc-h { display: flex; align-items: center; gap: 0.6rem; }
+.disc-h bdi {
+  border: 1px solid var(--rule); color: var(--mono);
+  font-size: 0.72rem; font-weight: 500; padding: 0.15rem 0.45rem;
+}
+.disc .dim { margin-block: 0.9rem 0.5rem; }
+
+.item {
+  display: grid; grid-template-columns: 2.9rem minmax(0, 1fr);
+  column-gap: 0.85rem; row-gap: 0.3rem;
+  padding-block: 0.9rem; border-block-end: 1px solid var(--rule-soft);
+}
+.item:last-child { border-block-end: 0; }
+.ref {
+  grid-column: 1; grid-row: 1;
+  color: var(--accent); font-size: 0.8rem; font-weight: 600;
+  letter-spacing: 0.06em; padding-block-start: 0.2rem;
+}
+.item-b { grid-column: 2; grid-row: 1; min-inline-size: 0; }
+.item-b p { font-size: 0.9375rem; margin-block-start: 0.15rem; }
+.item-m {
+  grid-column: 2; grid-row: 2;
+  font-size: 0.7rem; letter-spacing: 0.1em; color: var(--mono-dim);
+  overflow-wrap: anywhere;
+}
+.items-foot {
+  padding: clamp(0.85rem, 2vw, 1.25rem);
+  border-block-start: 1px solid var(--rule);
+  font-size: 0.875rem; display: flex; flex-wrap: wrap; gap: 0.35rem 1rem;
+  align-items: baseline; justify-content: space-between;
+}
+.items-foot .mono { font-size: 0.68rem; letter-spacing: 0.14em; color: var(--mono-dim); }
+
+/* ── 9. A-02 PROCEDURE — narrow measure, wide annotation gutter ───────── */
+.proc { padding: 0 clamp(0.85rem, 2vw, 1.25rem); }
+.proc-item {
+  display: grid; grid-template-columns: 3.25rem minmax(0, 1fr);
+  column-gap: 1rem; row-gap: 0.6rem;
+  padding-block: 1.25rem; border-block-end: 1px solid var(--rule-soft);
+}
+.proc-item:last-child { border-block-end: 0; }
+.proc-code {
+  grid-area: 1 / 1; margin: 0;
+  color: var(--mono); font-size: 0.8rem; letter-spacing: 0.08em;
+  padding-block-start: 0.3rem;
+}
+.proc-text { grid-area: 1 / 2; max-inline-size: 44ch; }
+.proc-text p { font-size: 0.9375rem; margin-block-start: 0.25rem; }
+.proc-dim { grid-area: 2 / 2; margin-block: 0; }
+
+/* ── 10. A-03 MATERIAL SCHEDULE ───────────────────────────────────────── */
+.spec-lede {
+  padding: clamp(0.85rem, 2vw, 1.25rem) clamp(0.85rem, 2vw, 1.25rem) 0;
+  font-size: 0.9375rem; max-inline-size: 52ch;
+}
+.sched { padding: 0 clamp(0.85rem, 2vw, 1.25rem) clamp(0.85rem, 2vw, 1.25rem); }
+.sched-row {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: 0.75rem; row-gap: 0.15rem;
+  padding-block: 0.8rem; border-block-end: 1px solid var(--rule-soft);
+}
+.sched-row:last-child { border-block-end: 0; }
+.sched-row > :nth-child(1) { grid-area: 1 / 1; }
+.sched-row > :nth-child(4) { grid-area: 1 / 2; text-align: end; }
+.sched-row > :nth-child(2) { grid-area: 2 / 1 / auto / 3; color: var(--ink); font-weight: 500; }
+.sched-row > :nth-child(3) { grid-area: 3 / 1 / auto / 3; font-size: 0.875rem; }
+.sched-row .mono { font-size: 0.78rem; letter-spacing: 0.06em; color: var(--mono); overflow-wrap: anywhere; }
+.sched-head { display: none; }
+
+/* ── 11. A-04 PLACEHOLDER PLATES ─────────────────────────────────────── */
+.plates {
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: clamp(0.75rem, 2vw, 1.25rem);
+  padding: clamp(0.85rem, 2vw, 1.25rem);
+}
+.plate {
+  position: relative; aspect-ratio: 4 / 3;
+  background: var(--ground); border: 1px solid var(--rule);
+  display: grid; place-content: center; justify-items: center; gap: 0.35rem;
+  padding: 1rem; text-align: center;
+}
+.plate-crop {
+  position: absolute; inset: 7px; pointer-events: none;
+  background:
+    linear-gradient(var(--rule), var(--rule)) 0 0 / 10px 1px no-repeat,
+    linear-gradient(var(--rule), var(--rule)) 0 0 / 1px 10px no-repeat,
+    linear-gradient(var(--rule), var(--rule)) 100% 0 / 10px 1px no-repeat,
+    linear-gradient(var(--rule), var(--rule)) 100% 0 / 1px 10px no-repeat,
+    linear-gradient(var(--rule), var(--rule)) 0 100% / 10px 1px no-repeat,
+    linear-gradient(var(--rule), var(--rule)) 0 100% / 1px 10px no-repeat,
+    linear-gradient(var(--rule), var(--rule)) 100% 100% / 10px 1px no-repeat,
+    linear-gradient(var(--rule), var(--rule)) 100% 100% / 1px 10px no-repeat;
+}
+.plate-x { inline-size: 2.25rem; block-size: 2.25rem; color: var(--mono-dim); }
+.plate-label { font-size: 0.9375rem; color: var(--ink); font-weight: 500; }
+.plate-ref { font-size: 0.65rem; letter-spacing: 0.14em; color: var(--mono-dim); }
+.plate-cap { font-size: 0.8125rem; color: var(--mono-dim); }
+
+/* ── 12. A-05 TITLE BLOCK ─────────────────────────────────────────────── */
+.block { display: grid; grid-template-columns: minmax(0, 1fr); }
+.block-cell {
+  padding: clamp(0.85rem, 2vw, 1.25rem);
+  border-inline-end: 1px solid var(--rule-soft);
+  border-block-end: 1px solid var(--rule-soft);
+  display: grid; align-content: start; gap: 0.5rem;
+}
+.block-cell h3 { font-size: 1rem; }
+.block-cell p { font-size: 0.9375rem; }
+.fine { font-size: 0.8125rem !important; color: var(--mono-dim); }
+.link {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  min-block-size: 2.75rem; align-self: start; justify-self: start;
+  font-size: 0.9375rem; font-weight: 700; text-decoration: none;
+  color: var(--ink); border: 1px solid var(--rule); padding-inline: 0.9rem;
+}
+.link:hover { border-color: var(--accent); }
+.link svg { inline-size: 1rem; block-size: 1rem; }
+.hours { display: grid; gap: 0.5rem; }
+.hours li {
+  display: flex; flex-wrap: wrap; justify-content: space-between; gap: 0.25rem 1rem;
+  padding-block-end: 0.5rem; border-block-end: 1px solid var(--rule-soft);
+  font-size: 0.9375rem;
+}
+.hours bdi { color: var(--mono); font-size: 0.85rem; letter-spacing: 0.04em; }
+.hours-off { color: var(--mono-dim); font-size: 0.85rem; }
+.block-cell-cta { border-inline-end: 0; }
+.block-cell-cta .btn { justify-self: start; }
+.block-cell-cta .btn-ghost { font-size: 0.8rem; }
+
+/* ── 13. SHEET FOOTER ─────────────────────────────────────────────────── */
+.foot { margin-block-start: 1rem; padding-block-end: 2rem; padding-inline: clamp(0.9rem, 3vw, 1.75rem); }
+.foot-in {
+  max-inline-size: 96rem; margin-inline: auto;
+  border: 1px solid var(--rule); background: var(--panel);
+  padding: 1rem clamp(0.9rem, 2.5vw, 1.5rem);
+  display: grid; gap: 0.4rem;
+}
+.foot-brand { color: var(--ink); font-weight: 700; }
+.foot-meta { font-size: 0.68rem; letter-spacing: 0.14em; color: var(--mono-dim); }
+.foot-fine { font-size: 0.8125rem; color: var(--mono-dim); }
+
+/* ══ 14. BREAKPOINTS — the technical grid collapses in stages ══════════ */
+
+/* the header phone is dropped on narrow screens — it is repeated in the hero
+   and in the title block, and at 320px it would wrap inside its own button */
+@media (max-width: 559px) {
+  .bar-tel { display: none; }
+}
+
+/* 480: the metadata lane gets its own column beside the item text */
+@media (min-width: 480px) {
+  .item { grid-template-columns: 2.9rem minmax(0, 1fr) auto; }
+  .item-m { grid-column: 3; grid-row: 1; align-self: start; padding-block-start: 0.25rem; }
+}
+
+/* 560: the callout pair goes side by side; plates go three-up */
+@media (min-width: 560px) {
+  .bar-sheet { display: block; }
+  .hero-pair { grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); }
+  .plates { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .block { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .block-cell:nth-child(2n) { border-inline-end: 0; }
+  .block-cell:nth-last-child(-n + 2) { border-block-end: 0; }
+}
+
+/* 720: the material schedule opens into real columns */
+@media (min-width: 720px) {
+  .sched-row { grid-template-columns: 6.25rem minmax(0, 1.2fr) minmax(0, 1.8fr) 4.5rem; align-items: baseline; }
+  .sched-row > :nth-child(1) { grid-area: 1 / 1; }
+  .sched-row > :nth-child(2) { grid-area: 1 / 2; }
+  .sched-row > :nth-child(3) { grid-area: 1 / 3; }
+  .sched-row > :nth-child(4) { grid-area: 1 / 4; }
+  .sched-head {
+    display: grid; grid-template-columns: 6.25rem minmax(0, 1.2fr) minmax(0, 1.8fr) 4.5rem;
+    column-gap: 0.75rem;
+    padding-block: 0.5rem; margin-block-start: 1rem;
+    border-block-end: 1px solid var(--rule);
+    font-size: 0.65rem; letter-spacing: 0.16em; color: var(--mono-dim); text-transform: uppercase;
+  }
+  .disc { border-inline-end: 1px solid var(--rule-soft); }
+}
+
+/* 900: two-column item grid; procedure gets its wide annotation gutter */
+@media (min-width: 900px) {
+  /* hero: text block + a callout block out at the sheet margin */
+  .hero-body { display: grid; grid-template-columns: minmax(0, 34rem) minmax(0, 1fr); column-gap: 2rem; row-gap: 1.25rem; align-items: end; }
+  .lede { grid-area: 1 / 1; }
+  .hero-actions { grid-area: 1 / 2; justify-content: flex-end; margin-block-start: 0; }
+  .hero-fine { grid-area: 2 / 1 / auto / 3; margin-block-start: 0; }
+
+  .items-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .disc:nth-child(2n) { border-inline-end: 0; }
+  .proc-item { grid-template-columns: 3.25rem minmax(0, 34rem) minmax(6rem, 1fr); align-items: start; }
+  .proc-code { grid-area: 1 / 1; }
+  .proc-text { grid-area: 1 / 2; }
+  .proc-dim { grid-area: 1 / 3; align-self: start; margin-block-start: 1.75rem; }
+}
+
+/* 1200: the index rail docks and persists alongside the drawing area */
+@media (min-width: 1200px) {
+  .sheet { grid-template-columns: 15.5rem minmax(0, 1fr); gap: 2rem; }
+  .rail { display: block; }
+  .nav-toggle { display: none; }
+  .bar-tel-lbl { display: inline; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
