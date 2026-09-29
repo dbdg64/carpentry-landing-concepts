@@ -34,6 +34,13 @@
   --mono-stack: "IBM Plex Mono", ui-monospace, "DejaVu Sans Mono", Menlo, Consolas, monospace;
 
   --bar-h: 4.25rem;
+
+  /* Stacking scale. Semantic, not arbitrary — the rail must sit ABOVE flowing
+     content but BELOW the sticky header, so a naive "make it very high" would
+     push the rail over the header and break that instead. */
+  --z-panel: 10;    /* sticky rails / panels: above content, below chrome */
+  --z-header: 30;   /* sticky sheet header */
+  --z-skip: 60;     /* skip link — must beat everything while focused */
 }
 
 /* ── 2. BASE ──────────────────────────────────────────────────────────── */
@@ -95,14 +102,14 @@ a:hover { text-decoration-color: currentColor; }
 }
 .skip {
   position: absolute; inset-block-start: -100%; inset-inline-start: 1rem;
-  z-index: 60; background: var(--accent); color: var(--on-accent);
+  z-index: var(--z-skip); background: var(--accent); color: var(--on-accent);
   padding: 0.75rem 1rem; font-weight: 700;
 }
 .skip:focus { inset-block-start: 1rem; }
 
 /* ── 3. SHEET HEADER ──────────────────────────────────────────────────── */
 .bar {
-  position: sticky; inset-block-start: 0; z-index: 30;
+  position: sticky; inset-block-start: 0; z-index: var(--z-header);
   background: var(--panel);
   border-block-end: 1px solid var(--rule);
 }
@@ -157,6 +164,7 @@ a:hover { text-decoration-color: currentColor; }
 .rail {
   display: none;
   position: sticky; inset-block-start: calc(var(--bar-h) + 1.25rem);
+  z-index: var(--z-panel);
   align-self: start;
   background: var(--panel);
   border: 1px solid var(--rule);
